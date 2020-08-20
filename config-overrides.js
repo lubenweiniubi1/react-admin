@@ -5,7 +5,11 @@
  */
 
 //引入一些相关的customize-cra 方法
-const { override, addLessLoader } = require("customize-cra")
+const {
+  override,
+  addLessLoader,
+  addDecoratorsLegacy,
+} = require("customize-cra")
 const modifyVars = require("./lessVars")
 
 module.exports = override(
@@ -14,5 +18,6 @@ module.exports = override(
       modifyVars,
       javascriptEnabled: true,
     },
-  })
+  }),
+  addDecoratorsLegacy()
 )
