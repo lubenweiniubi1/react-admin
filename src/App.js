@@ -3,17 +3,17 @@ import { Loading } from "./component"
 
 import { Route, Switch, Redirect } from "react-router-dom"
 import { adminRouter } from "./routes"
+import { Frame } from "./component"
 
 class App extends Component {
   render() {
     return (
-      <div>
-        <div>公共部分</div>
+      <Frame>
         <Suspense fallback={<Loading />}>
           <Switch>
             {adminRouter.map((route) => {
               return (
-                <Route 
+                <Route
                   key={route.pathname}
                   path={route.pathname}
                   exact={!!route.exact}
@@ -31,7 +31,7 @@ class App extends Component {
             <Redirect to="/404"></Redirect>
           </Switch>
         </Suspense>
-      </div>
+      </Frame>
     )
   }
 }
