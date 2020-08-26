@@ -2,6 +2,7 @@ import React, { Component } from "react"
 import { Card, Button, Table, Tag, Radio } from "antd"
 import { getArticles } from "../../request"
 import moment from "moment"
+import XLSX from "xlsx"
 
 const { Group } = Radio
 const titleDisplayMap = {
@@ -17,47 +18,12 @@ export default class ArticleList extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      dataSource: [
-        {
-          key: "1",
-          name: "胡彦斌",
-          age: 32,
-          address: "西湖区湖底公园1号",
-        },
-        {
-          key: "2",
-          name: "胡彦祖",
-          age: 42,
-          address: "西湖区湖底公园1号",
-        },
-      ],
-      columns: [
-        {
-          title: "姓名",
-          dataIndex: "name",
-          key: "name",
-        },
-        {
-          title: "年龄",
-          dataIndex: "age",
-          key: "age",
-        },
-        {
-          title: "住址",
-          dataIndex: "address",
-          key: "address",
-        },
-        {
-          title: "操作",
-          dataIndex: "actions",
-          key: "actions",
-          render: (text, record, index) => {
-            return <Button>编辑</Button>
-          },
-        },
-      ],
+      dataSource: [],
+      columns: [],
       total: 0,
       isLoading: false,
+      offset: 0,
+      limited: 10,
     }
   }
 
@@ -118,7 +84,7 @@ export default class ArticleList extends Component {
     this.setState({
       isLoading: true,
     })
-    getArticles()
+    getArticles(this.state.offset, this.state.limited)
       .then((resp) => {
         const columnsKeys = Object.keys(resp.data.list[0])
         const columns = this.createColumns(columnsKeys)
@@ -148,20 +114,58 @@ export default class ArticleList extends Component {
     this.getData()
   }
 
+  onPageChange = (page, pageSize) => {
+    this.setState(
+      {
+        offset: (page - 1) * pageSize,
+        limited: pageSize,
+      },
+      () => {
+        this.getData()
+      }
+    )
+  }
+
+  toExcel = () => {
+    //在实际的项目中，这个功能时前端发送一个请求到后端，然后后端返回一个文件下载的地址
+    //组合数据
+    const data = [Object.keys(this.state.dataSource[0])]
+
+    this.state.dataSource.forEach((item) => {
+      item.createAt = moment(item.createAt).format("YYYY年 MM月 HH:mm")
+    })
+
+    for (let i = 0; i < this.state.dataSource.length; i++) {
+      const value = Object.values(this.state.dataSource[i])
+      data.push(value)
+    }
+
+    console.log(data)
+    const ws = XLSX.utils.aoa_to_sheet(data)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, "SheetJS")
+    /* generate XLSX file and send to client */
+    XLSX.writeFile(wb, "meshit.xlsx")
+  }
+
   render() {
     return (
       <div>
         <Card
           title="文章列表"
           bordered={false}
-          extra={<Button>导出excel</Button>}
+          extra={<Button onClick={this.toExcel}>导出excel</Button>}
         >
           <Table
             dataSource={this.state.dataSource}
             columns={this.state.columns}
             loading={false}
             pagination={{
+              current: this.state.offset / this.state.limited + 1,
               total: this.state.total,
+              onChange: this.onPageChange,
+              showQuickJumper: true,
+              showSizeChanger: false,
             }}
             loading={this.state.isLoading}
           />
