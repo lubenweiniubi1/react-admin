@@ -1,6 +1,7 @@
 import React, { Component } from "react"
-import { Card, Button, Table } from "antd"
+import { Card, Button, Table, Tag } from "antd"
 import { getArticles } from "../../request"
+import moment from "moment"
 
 const titleDisplayMap = {
   id: "id",
@@ -9,6 +10,8 @@ const titleDisplayMap = {
   createAt: "创建时间",
   amount: "阅读量",
 }
+
+console.log(moment())
 export default class ArticleList extends Component {
   constructor(props) {
     super(props)
@@ -58,6 +61,32 @@ export default class ArticleList extends Component {
 
   createColumns = (columnKeys) => {
     return columnKeys.map((item) => {
+      if (item === "amount") {
+        return {
+          title: titleDisplayMap[item],
+          dataIndex: item,
+          key: item,
+          render: (text, record, index) => {
+            const { amount } = record
+            //根据数字大小做条件渲染
+            return (
+              <Tag color={amount > 200 ? "red" : "green"}>{record.amount}</Tag>
+            )
+          },
+        }
+      } else if (item === "createAt") {
+        return {
+          title: titleDisplayMap[item],
+          dataIndex: item,
+          key: item,
+          render: (text, record, index) => {
+            const { createAt } = record
+
+            return moment(createAt).format("YYYY年MM月DD日 HH:mm:ss")
+          },
+        }
+      }
+
       return {
         title: titleDisplayMap[item],
         dataIndex: item,
