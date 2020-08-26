@@ -1,8 +1,9 @@
 import React, { Component } from "react"
-import { Card, Button, Table, Tag } from "antd"
+import { Card, Button, Table, Tag, Radio } from "antd"
 import { getArticles } from "../../request"
 import moment from "moment"
 
+const { Group } = Radio
 const titleDisplayMap = {
   id: "id",
   title: "标题",
@@ -56,11 +57,12 @@ export default class ArticleList extends Component {
         },
       ],
       total: 0,
+      isLoading: false,
     }
   }
 
   createColumns = (columnKeys) => {
-    return columnKeys.map((item) => {
+    const cols = columnKeys.map((item) => {
       if (item === "amount") {
         return {
           title: titleDisplayMap[item],
@@ -93,24 +95,53 @@ export default class ArticleList extends Component {
         key: item,
       }
     })
+    cols.push({
+      title: "操作",
+      key: "action",
+      render: (text, record, index) => {
+        return (
+          <Group>
+            <Button value="1" size="small" type="ghost">
+              编辑
+            </Button>
+            <Button value="2" size="small" type="danger">
+              删除
+            </Button>
+          </Group>
+        )
+      },
+    })
+    return cols
   }
 
   getData = () => {
-    getArticles().then((resp) => {
-      const columnsKeys = Object.keys(resp.data.list[0])
-      const columns = this.createColumns(columnsKeys)
-
-      const dataSource = resp.data.list.map((record) => {
-        record.key = record.id
-        return record
-      })
-
-      this.setState({
-        total: resp.data.total,
-        columns,
-        dataSource,
-      })
+    this.setState({
+      isLoading: true,
     })
+    getArticles()
+      .then((resp) => {
+        const columnsKeys = Object.keys(resp.data.list[0])
+        const columns = this.createColumns(columnsKeys)
+
+        const dataSource = resp.data.list.map((record) => {
+          record.key = record.id
+          return record
+        })
+
+        this.setState({
+          total: resp.data.total,
+          columns,
+          dataSource,
+        })
+      })
+      .catch((err) => {
+        //处理错误，虽然有全局处理
+      })
+      .finally(() => {
+        this.setState({
+          isLoading: false,
+        })
+      })
   }
 
   componentDidMount() {
@@ -132,6 +163,7 @@ export default class ArticleList extends Component {
             pagination={{
               total: this.state.total,
             }}
+            loading={this.state.isLoading}
           />
           ;
         </Card>
