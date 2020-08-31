@@ -1,6 +1,6 @@
 import React, { Component } from "react"
-import { Card, Button, Table, Tag, Radio } from "antd"
-import { getArticles } from "../../request"
+import { Card, Button, Table, Tag, Radio, Modal } from "antd"
+import { getArticles, deleteArticle } from "../../request"
 import moment from "moment"
 import XLSX from "xlsx"
 
@@ -70,7 +70,12 @@ export default class ArticleList extends Component {
             <Button value="1" size="small" type="ghost">
               编辑
             </Button>
-            <Button value="2" size="small" type="danger">
+            <Button
+              value="2"
+              size="small"
+              type="danger"
+              onClick={() => this.deleteArticle(record.id)}
+            >
               删除
             </Button>
           </Group>
@@ -78,6 +83,22 @@ export default class ArticleList extends Component {
       },
     })
     return cols
+  }
+
+  deleteArticle = (id) => {
+    const modal = Modal.confirm()
+    modal.update({
+      title: "确定要删除吗",
+      content: "删除不可逆，请谨慎",
+      okText: "别墨迹，赶紧的",
+      cancelText: "我点错了",
+      onCancel() {},
+      onOk: function () {
+        deleteArticle(id).then((resp) => {
+          console.log(resp)
+        })
+      },
+    })
   }
 
   getData = () => {
